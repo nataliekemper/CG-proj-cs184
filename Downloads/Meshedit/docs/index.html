@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <style>
+    body {
+      padding: 100px;
+      width: 1000px;
+      margin: auto;
+      text-align: left;
+      font-weight: 300;
+      font-family: 'Open Sans', sans-serif;
+      color: #121212;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+  </style>
+  <title>CS 184 Mesh Editor</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+  <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2020</h1>
+  <h1 align="middle">Project 2: Mesh Editor</h1>
+  <h2 align="middle">Ryan Adolf and Natalie Kemper, CS184-??</h2>
+
+  <br><br>
+
+  <div>
+
+    <h2 align="middle">Overview</h2>
+    <p>Give a high-level overview of what you implemented in this project. Think about what you've built as a whole.
+      Share your thoughts on what interesting things you've learned from completing the project.</p>
+
+    <h2 align="middle">Section I: Bezier Curves and Surfaces</h2>
+
+    <h3 align="middle">Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
+
+    <p>De Casteljau's algorithm is a recursive method to evaluate the Bezier curve of polynomials. The algorithm works as follows:</p>
+    <p>1. Consider n points on a Bézier curve with control points {P_{0},...,P_{n}} and ratio parameter t.</p>
+    <p>2. Perform a linear interpolation (lerp) between any two consecutive points. This will create n-1 points with a ratio of t
+       between every two consecutive control points.</p>
+    <p>3. Connect these new points, and recursively lerp until left with 1 point at length t of the final line segment.</p>
+
+    <p>For our implementation, we created a helper <code>lerp2D</code> method that takes 2 input points and parameter t, and outputs a Vector2D
+      of where the new point is placed on the curve. We iterated through all given points, and used <code>lerp2D</code> to produce a list of
+      vectors that hold all points in one step of the algorithm. Thus, this function only evalues one level of subdivision in de Casteljau's
+      algorithm.</p>
+
+    <div align="middle">
+      <table style="width=100%">
+        <tr>
+          <td>
+            <img src="images/task1/b1-level1.png" align="middle" width="500px" />
+            <figcaption align="middle">Level 1 Subdivision.</figcaption>
+          </td>
+          <td>
+            <img src="images/task1/b1-level2.png" align="middle" width="500px" />
+            <figcaption align="middle">Level 2 Subdivision.</figcaption>
+          </td>
+        </tr>
+        <br>
+        <tr>
+          <td>
+            <img src="images/task1/b1-level3.png" align="middle" width="500px" />
+            <figcaption align="middle">Level 3 Subdivision.</figcaption>
+          </td>
+          <td>
+            <img src="images/task1/b1-level4.png" align="middle" width="500px" />
+            <figcaption align="middle">Level 4 Subdivision.</figcaption>
+          </td>
+        </tr>
+        <br>
+        <tr>
+          <td>
+            <img src="images/task1/b1-level5.png" align="middle" width="500px" />
+            <figcaption align="middle">Level 5 Subdivision.</figcaption>
+          </td>
+          <td>
+            <img src="images/task1/b1-level5-curve.png" align="middle" width="500px" />
+            <figcaption align="middle">Level 5 Subdivision with Bezier Curve I.</figcaption>
+          </td>
+        </tr>
+        <br>
+        <tr>
+          <td>
+            <img src="images/task1/b1-curve.png" align="middle" width="500px" />
+            <figcaption align="middle">Bezier Curve I of Given Control Points.</figcaption>
+          </td>
+          <td>
+            <img src="images/task1/b1-move-curve.png" align="middle" width="500px" />
+            <figcaption align="middle">T parameter moved on Bezier Curve I.</figcaption>
+          </td>
+        </tr>
+      <br>
+      </table>
+    </div>
+
+    <div align="middle">
+      <table style="width=100%">
+        <tr>
+          <td>
+            <img src="images/task1/b2-curve.png" align="middle" width="500px" />
+            <figcaption align="middle">Bezier Curve II.</figcaption>
+          </td>
+          <td>
+            <img src="images/task1/b2-curve-move.png" align="middle" width="500px" />
+            <figcaption align="middle">T parameter moved on Bezier Curve II.</figcaption>
+          </td>
+        </tr>
+        <br>
+      </table>
+    </div>
+
+
+    <h3 align="middle">Part 2: Bezier surfaces with separable 1D de Casteljau subdivision</h3>
+
+    <h3 align="left">Separable 1D de Casteljau Overview</h3>
+
+    <p> De Casteljau's algorithm naturally extends to Bezier surfaces. To produce a surface defined on a
+    uv plane, let's consider a grid of nxn control points. For each n rows of the u-axis, we use de Casteljau
+    tp produce a "slice" of the surface along the rows with their given control points. These n "slices" will
+    produce n one-dimensional Bezier curves on the u-axis parameterized by u. </p>
+
+    <p> With our n u-parameterized 1D Bezier curves along the u-axis, we can apply the same logic in the v direction.
+    For each column along the v-axis, we can use a point on our n u-parameterized Bezier curves as control points
+    and apply 1D de Casteljau to produce a "slice" of the surface along each n column. These n "slices" will
+    produce n one-dimensional Bezier curves on the v-axis parameterized by v. The n Bezier curves in both the u and v axes
+    produce a Bezier surface defined on a uv plane. </p>
+
+    <p> As an exanple, a 4x4 grid of control points, each row produces 4 Bezier u-parameterized curves along the u-axis
+    and each column produces 4 Bezier v-parameterized curves along the v-axis. </p>
+
+    <h3 align="left">Separable 1D de Casteljau Implementation</h3>
+
+    <p> In our implementation of separable 1D de Casteljau, we first defined <code>BezierPatch::evaluateStep</code> and helper
+      <code>lerp3D</code> methods that evalues one step of the de Casteljau's algorithm using a list of given points and a scalar
+      parameter t. These methods work exactly the same as <code>BezierCurve::evaluateStep</code> from task 1, except now redefined
+      using 3D vectors instead of 2D vectors. </p>
+
+    <p> From there, we defined <code>BezierPatch::evaluate1D</code>, which fully evaluates de Casteljau's algorithm for a vector of
+      points and parameter t by recursively calling <code>evaluateStep</code>. This function outputs a fully interpolated vector. </p>
+
+    <p> Finally, we defined <code>BezierPatch::evaluate</code>, which uses parameters u and v to evaluate the Bezier patch at (u, v).
+      This method defines the heart of the separable 1D de Casteljau algorithm. It first recursively calls <code>evaluate1D</code>
+      on all given control points with parameter u. These interpolated u-vectors are stored in a list of vectors, <code>vec</code>. After all
+      control points are evaluated in the u-axis, we evaluate the final interpolated vector in the v-axis by calling
+      <code>evaluate(vec, v)</code> one last time. This produces the final interpolated 3D vector evaluated at (u, v) of the Bezier Patch. </p>
+
+    <div align="middle">
+      <table style="width=100%">
+        <tr>
+          <td>
+            <img src="images/task2/teapot1.png" align="middle" width="500px" />
+            <figcaption align="middle">Front view.</figcaption>
+          </td>
+          <td>
+            <img src="images/task2/teapot1.png" align="middle" width="500px" />
+            <figcaption align="middle">Angled view.</figcaption>
+          </td>
+        </tr>
+        <br>
+      </table>
+    </div>
+
+
+    <h2 align="middle">Section II: Sampling</h2>
+
+    <h3 align="middle">Part 3: Average normals for half-edge meshes</h3>
+
+
+    <h3 align="middle">Part 4: Half-edge flip</h3>
+
+
+    <h3 align="middle">Part 5: Half-edge split</h3>
+
+
+    <h3 align="middle">Part 6: Loop subdivision for mesh upsampling</h3>
+
+
+
+    <h2 align="middle">Section III: Optional Extra Credit</h2>
+    <p>If you are not participating in the optional mesh competition, don't worry about this section!</p>
+
+    <h3 align="middle">Part 7: Design your own mesh!</h3>
+
+</body>
+
+</html>
